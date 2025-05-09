@@ -3,385 +3,272 @@ package combinedlogingui;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.ArrayList;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.io.*;
 
-public class CombinedLoginGUI extends JFrame {
+public class combinedlogingui {
+    private JFrame frame;
+    private JPanel loginPanel, signupPanel;
+    private CardLayout cardLayout;
+    private File userFile = new File("users.txt");
 
-    // general constants
-    public static final Font FONT_GENERAL_UI = new Font("Segoe UI", Font.PLAIN, 20);
-    public static final Font FONT_FORGOT_PASSWORD = new Font("Segoe UI", Font.PLAIN, 12);
-    public static final Color COLOR_OUTLINE = new Color(103, 112, 120);
-    public static final Color COLOR_BACKGROUND = new Color(37, 51, 61);
-    public static final Color COLOR_INTERACTIVE = new Color(108, 216, 158);
-    public static final Color COLOR_INTERACTIVE_DARKER = new Color(87, 171, 127);
-    public static final Color OFFWHITE = new Color(229, 229, 229);
-    public static final String BUTTON_TEXT_LOGIN = "Login";
-    public static final String BUTTON_TEXT_FORGOT_PASS = "Forgot your password?";
-    public static final String BUTTON_TEXT_REGISTER = "Register";
-    public static final String PLACEHOLDER_TEXT_USERNAME = "Username/email";
-    public static final int ROUNDNESS = 8;
-
-    private final Toaster toaster;
-
-    // main method
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(CombinedLoginGUI::new);
+        SwingUtilities.invokeLater(combinedlogingui::new);
     }
 
-    // users info ---------------------------------
-    public static final String user_1 = "ghonem";
-    public static final String pass_1 = "123";
-    public static final String user_2 = "shalapy";
-    public static final String pass_2 = "456";
-    public static final String user_3 = "omar";
-    public static final String pass_3 = "789";
-    //----------------------------------------------
+    public combinedlogingui() {
+        frame = new JFrame("Login System");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(500, 400);
+        frame.setLocationRelativeTo(null);
+        frame.setResizable(false);
 
-    // main constructor
-    private CombinedLoginGUI() {
-        this.setTitle("Login App");
-        JPanel mainPanel = getMainPanel();
-        addLogo(mainPanel);
-        addSeparator(mainPanel);
-        addUsernameTextField(mainPanel);
-        addPasswordTextField(mainPanel);
-        addLoginButton(mainPanel);
-        addForgotPasswordButton(mainPanel);
-        addRegisterButton(mainPanel);
-        this.add(mainPanel);
-        this.pack();
-        this.setVisible(true);
-        this.toFront();
-        setLocationRelativeTo(null);
-        toaster = new Toaster(mainPanel);
+        cardLayout = new CardLayout();
+        JPanel container = new JPanel(cardLayout);
+
+        loginPanel = createLoginPanel();
+        signupPanel = createSignupPanel();
+
+        container.add(loginPanel, "login");
+        container.add(signupPanel, "signup");
+
+        frame.setContentPane(container);
+        frame.setVisible(true);
     }
 
-    // getting the main panel
-    private JPanel getMainPanel() {
-        JPanel panel = new JPanel(null);
-        panel.setPreferredSize(new Dimension(800, 400));
-        panel.setBackground(COLOR_BACKGROUND);
+    private JPanel createLoginPanel() {
+        JPanel panel = new JPanel();
+        panel.setLayout(null);
+        panel.setBackground(new Color(60, 63, 65));
 
-        // moving panel on drag
-        MouseAdapter ma = new MouseAdapter() {
-            int lastX, lastY;
-            public void mousePressed(MouseEvent e) {
-                lastX = e.getXOnScreen();
-                lastY = e.getYOnScreen();
-            }
-            public void mouseDragged(MouseEvent e) {
-                int x = e.getXOnScreen();
-                int y = e.getYOnScreen();
-                setLocation(getLocation().x + x - lastX, getLocation().y + y - lastY);
-                lastX = x;
-                lastY = y;
-            }
-        };
-        panel.addMouseListener(ma);
-        panel.addMouseMotionListener(ma);
-        return panel;
-    }
+        JLabel title = new JLabel("Login");
+        title.setFont(new Font("Arial", Font.BOLD, 26));
+        title.setForeground(Color.WHITE);
+        title.setBounds(200, 20, 100, 30);
 
-    // adding the line separator
-    private void addSeparator(JPanel panel) {
-        JSeparator separator = new JSeparator(SwingConstants.VERTICAL);
-        separator.setForeground(COLOR_OUTLINE);
-        separator.setBounds(310, 80, 1, 240);
-        panel.add(separator);
-    }
+        JLabel userLabel = new JLabel("Username:");
+        userLabel.setForeground(Color.WHITE);
+        userLabel.setBounds(60, 80, 100, 30);
 
-    // adding the logo sec
-    private void addLogo(JPanel panel) {
-        JLabel label = new JLabel("LOGO");
-        label.setForeground(Color.WHITE);
-        label.setHorizontalAlignment(SwingConstants.CENTER);
-        label.setBounds(55, 146, 200, 110);
-        panel.add(label);
-    }
+        JTextField userField = new JTextField();
+        userField.setBounds(130, 80, 220, 30);
 
-    // adding the username sec
-    private void addUsernameTextField(JPanel panel) {
-        JTextField field = new TextFieldUsername();
-        field.setBounds(423, 109, 250, 44);
-        panel.add(field);
-    }
+        JLabel passLabel = new JLabel("Password:");
+        passLabel.setForeground(Color.WHITE);
+        passLabel.setBounds(60, 130, 100, 30);
 
-    // adding the password sec
-    private void addPasswordTextField(JPanel panel) {
-        JPasswordField field = new TextFieldPassword();
-        field.setBounds(423, 168, 250, 44);
-        panel.add(field);
-    }
+        JPasswordField passField = new JPasswordField();
+        passField.setBounds(130, 130, 220, 30);
 
-    // adding the login button
-    private void addLoginButton(JPanel panel) {
-        JLabel loginBtn = new JLabel(BUTTON_TEXT_LOGIN, SwingConstants.CENTER);
-        loginBtn.setFont(FONT_GENERAL_UI);
-        loginBtn.setOpaque(true);
-        loginBtn.setBackground(COLOR_INTERACTIVE);
-        loginBtn.setForeground(Color.WHITE);
-        loginBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        loginBtn.setBounds(423, 247, 250, 44);
+        JButton loginBtn = new JButton("Login");
+        loginBtn.setBounds(140, 200, 90, 35);
 
-        loginBtn.addMouseListener(new MouseAdapter() {
-            public void mousePressed(MouseEvent e) {
-                Component[] comps = panel.getComponents();
-                String username = "", password = "";
+        JButton goToSignup = new JButton("Sign Up");
+        goToSignup.setBounds(248, 200, 90, 35);
 
-                for (Component c : comps) {
-                    if (c instanceof TextFieldUsername) {
-                        username = ((TextFieldUsername) c).getText().trim();
-                    } else if (c instanceof TextFieldPassword) {
-                        password = new String(((TextFieldPassword) c).getPassword()).trim();
-                    }
-                }
+        JLabel msg = new JLabel("", SwingConstants.CENTER);
+        msg.setForeground(Color.RED);
+        msg.setBounds(100, 250, 300, 25);
 
-                if (username.equals(PLACEHOLDER_TEXT_USERNAME) || password.equals("Password")) {
-                    toaster.error("Please fill in all fields");
-                    return;
-                }
+        loginBtn.addActionListener(e -> {
+            String user = userField.getText().trim();
+            String pass = new String(passField.getPassword()).trim();
 
-                if ((username.equals(user_1) && password.equals(pass_1)) ||
-                    (username.equals(user_2) && password.equals(pass_2)) ||
-                    (username.equals(user_3) && password.equals(pass_3))) {
-                    toaster.success("Login successful!");
-                    SwingUtilities.invokeLater(SuccessFrame::new);
-                } else {
-                    toaster.error("Wrong username or password");
-                    SwingUtilities.invokeLater(ErrorFrame::new);
-                }
+            if (isUserValid(user, pass)) {
+                showActivityPanel(user);
+            } else {
+                msg.setForeground(Color.RED);
+                msg.setText("Invalid username or password");
             }
         });
 
+        goToSignup.addActionListener(e -> cardLayout.show(frame.getContentPane(), "signup"));
+
+        panel.add(title);
+        panel.add(userLabel);
+        panel.add(userField);
+        panel.add(passLabel);
+        panel.add(passField);
         panel.add(loginBtn);
+        panel.add(goToSignup);
+        panel.add(msg);
+        return panel;
     }
 
-    // adding the forgot password link
-    private void addForgotPasswordButton(JPanel panel) {
-        panel.add(new HyperlinkText(BUTTON_TEXT_FORGOT_PASS, 423, 300, () -> toaster.error("Forgot password event")));
+    private JPanel createSignupPanel() {
+        JPanel panel = new JPanel();
+        panel.setLayout(null);
+        panel.setBackground(new Color(60, 63, 65));
+
+        JLabel title = new JLabel("Sign Up");
+        title.setFont(new Font("Arial", Font.BOLD, 26));
+        title.setForeground(Color.WHITE);
+        title.setBounds(200, 20, 120, 30);
+
+        JLabel userLabel = new JLabel("Username:");
+        userLabel.setForeground(Color.WHITE);
+        userLabel.setBounds(60, 80, 100, 30);
+
+        JTextField userField = new JTextField();
+        userField.setBounds(130, 80, 220, 30);
+
+        JLabel passLabel = new JLabel("Password:");
+        passLabel.setForeground(Color.WHITE);
+        passLabel.setBounds(60, 130, 100, 30);
+
+        JPasswordField passField = new JPasswordField();
+        passField.setBounds(130, 130, 220, 30);
+
+        JButton signupBtn = new JButton("Register");
+        signupBtn.setBounds(140, 200, 90, 35);
+        JButton backBtn = new JButton("Back");
+        backBtn.setBounds(248, 200, 90, 35);
+
+        JLabel msg = new JLabel("", SwingConstants.CENTER);
+        msg.setForeground(Color.YELLOW);
+        msg.setBounds(100, 250, 300, 25);
+
+        signupBtn.addActionListener(e -> {
+            String user = userField.getText().trim();
+            String pass = new String(passField.getPassword()).trim();
+
+            if (user.isEmpty() || pass.isEmpty()) {
+                msg.setText("Fields can't be empty");
+            } else if (userExists(user)) {
+                msg.setText("Username already exists");
+            } else {
+                saveUser(user, pass);
+                msg.setForeground(new Color(0, 200, 0));
+                msg.setText("User registered successfully!");
+            }
+        });
+
+        backBtn.addActionListener(e -> cardLayout.show(frame.getContentPane(), "login"));
+
+        panel.add(title);
+        panel.add(userLabel);
+        panel.add(userField);
+        panel.add(passLabel);
+        panel.add(passField);
+        panel.add(signupBtn);
+        panel.add(backBtn);
+        panel.add(msg);
+        return panel;
     }
 
-    // adding the register link
-    private void addRegisterButton(JPanel panel) {
-        panel.add(new HyperlinkText(BUTTON_TEXT_REGISTER, 631, 300, () -> toaster.success("Register event")));
+    private void showActivityPanel(String username) {
+        JPanel cipherPanel = new JPanel();
+        cipherPanel.setLayout(null);
+        cipherPanel.setBackground(new Color(60, 63, 65));
+
+        JLabel title = new JLabel("Caesar Cipher Encryption");
+        title.setForeground(Color.WHITE);
+        title.setFont(new Font("Arial", Font.BOLD, 22));
+        title.setBounds(120, 10, 300, 30);
+
+        JLabel inputLabel = new JLabel("Input Text:");
+        inputLabel.setForeground(Color.WHITE);
+        inputLabel.setBounds(50, 60, 100, 25);
+        JTextField inputField = new JTextField();
+        inputField.setBounds(150, 60, 250, 25);
+
+        JLabel keyLabel = new JLabel("Key:");
+        keyLabel.setForeground(Color.WHITE);
+        keyLabel.setBounds(50, 100, 100, 25);
+        JComboBox<Integer> keyBox = new JComboBox<>();
+        for (int i = 1; i <= 10; i++) keyBox.addItem(i);
+        keyBox.setBounds(150, 100, 250, 25);
+
+        JButton encryptBtn = new JButton("Encrypt");
+        encryptBtn.setBounds(80, 140, 100, 30);
+        JButton decryptBtn = new JButton("Decrypt");
+        decryptBtn.setBounds(220, 140, 100, 30);
+
+        JLabel outputLabel = new JLabel("Output:");
+        outputLabel.setForeground(Color.WHITE);
+        outputLabel.setBounds(50, 190, 100, 25);
+        JTextField outputField = new JTextField();
+        outputField.setEditable(false);
+        outputField.setBounds(150, 190, 250, 25);
+
+        JButton logoutBtn = new JButton("Logout");
+        logoutBtn.setBounds(180, 240, 100, 30);
+        logoutBtn.addActionListener(e -> cardLayout.show(frame.getContentPane(), "login"));
+
+        encryptBtn.addActionListener(e -> {
+            String text = inputField.getText();
+            int key = (int) keyBox.getSelectedItem();
+            outputField.setText(caesarEncrypt(text, key));
+        });
+
+        decryptBtn.addActionListener(e -> {
+            String text = inputField.getText();
+            int key = (int) keyBox.getSelectedItem();
+            outputField.setText(caesarDecrypt(text, key));
+        });
+
+        cipherPanel.add(title);
+        cipherPanel.add(inputLabel);
+        cipherPanel.add(inputField);
+        cipherPanel.add(keyLabel);
+        cipherPanel.add(keyBox);
+        cipherPanel.add(encryptBtn);
+        cipherPanel.add(decryptBtn);
+        cipherPanel.add(outputLabel);
+        cipherPanel.add(outputField);
+        cipherPanel.add(logoutBtn);
+
+        frame.getContentPane().add(cipherPanel, "activity");
+        cardLayout.show(frame.getContentPane(), "activity");
     }
 
-    // styling the username textfield
-    static class TextFieldUsername extends JTextField {
-        private final String placeholder = "Username/email";
-        private boolean showingPlaceholder = true;
+    private String caesarEncrypt(String text, int key) {
+        StringBuilder result = new StringBuilder();
+        for (char c : text.toCharArray()) {
+            if (Character.isLetter(c)) {
+                char base = Character.isUpperCase(c) ? 'A' : 'a';
+                result.append((char) ((c - base + key) % 26 + base));
+            } else {
+                result.append(c);
+            }
+        }
+        return result.toString();
+    }
 
-        public TextFieldUsername() {
-            setOpaque(false);
-            setBackground(COLOR_BACKGROUND);
-            setForeground(Color.GRAY);
-            setCaretColor(Color.white);
-            setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
-            setFont(FONT_GENERAL_UI);
-            setText(placeholder);
+    private String caesarDecrypt(String text, int key) {
+        return caesarEncrypt(text, 26 - key);
+    }
 
-            addFocusListener(new FocusAdapter() {
-                public void focusGained(FocusEvent e) {
-                    if (getText().equals(placeholder)) {
-                        setText("");
-                        setForeground(Color.WHITE);
-                        showingPlaceholder = false;
-                    }
+    private boolean userExists(String username) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(userFile))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.split(",")[0].equals(username)) {
+                    return true;
                 }
+            }
+        } catch (IOException e) {}
+        return false;
+    }
 
-                public void focusLost(FocusEvent e) {
-                    if (getText().isEmpty()) {
-                        setText(placeholder);
-                        setForeground(Color.GRAY);
-                        showingPlaceholder = true;
-                    }
+    private boolean isUserValid(String username, String password) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(userFile))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts[0].equals(username) && parts[1].equals(password)) {
+                    return true;
                 }
-            });
-        }
-
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g;
-            g2.setColor(getBackground());
-            g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, ROUNDNESS, ROUNDNESS);
-            super.paintComponent(g2);
-        }
-
-        protected void paintBorder(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g;
-            g2.setColor(COLOR_INTERACTIVE);
-            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, ROUNDNESS, ROUNDNESS);
-        }
+            }
+        } catch (IOException e) {}
+        return false;
     }
 
-    // styling the password textfield
-    static class TextFieldPassword extends JPasswordField {
-        private final String placeholder = "Password";
-        private boolean showingPlaceholder = true;
-        private boolean showPassword = false;
-        private JButton toggleButton;
-
-        public TextFieldPassword() {
-            setOpaque(false);
-            setBackground(COLOR_BACKGROUND);
-            setForeground(Color.GRAY);
-            setCaretColor(Color.white);
-            setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
-            setFont(FONT_GENERAL_UI);
-            setEchoChar((char) 0);
-            setText(placeholder);
-
-            toggleButton = new JButton("👁");
-            toggleButton.setFocusable(false);
-            toggleButton.setBorderPainted(false);
-            toggleButton.setContentAreaFilled(false);
-            toggleButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-            toggleButton.addActionListener(e -> togglePasswordVisibility());
-
-            setLayout(null);
-            add(toggleButton);
-
-            addComponentListener(new ComponentAdapter() {
-                public void componentResized(ComponentEvent e) {
-                    toggleButton.setBounds(getWidth() - 30, 10, 30, getHeight() - 20);
-                }
-            });
-
-            addFocusListener(new FocusAdapter() {
-                public void focusGained(FocusEvent e) {
-                    if (showingPlaceholder) {
-                        setText("");
-                        setForeground(Color.WHITE);
-                        setEchoChar('•');
-                        showingPlaceholder = false;
-                    }
-                }
-
-                public void focusLost(FocusEvent e) {
-                    if (getPassword().length == 0) {
-                        setText(placeholder);
-                        setForeground(Color.GRAY);
-                        setEchoChar((char) 0);
-                        showingPlaceholder = true;
-                    }
-                }
-            });
-        }
-
-        private void togglePasswordVisibility() {
-            if (showingPlaceholder) return;
-            showPassword = !showPassword;
-            setEchoChar(showPassword ? (char) 0 : '•');
-        }
-
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g;
-            g2.setColor(getBackground());
-            g2.fillRoundRect(0, 0, getWidth() - 1, getHeight() - 1, ROUNDNESS, ROUNDNESS);
-            super.paintComponent(g2);
-        }
-
-        protected void paintBorder(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g;
-            g2.setColor(COLOR_OUTLINE);
-            g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, ROUNDNESS, ROUNDNESS);
-        }
-    }
-
-    // reusable hyperlink text label
-    static class HyperlinkText extends JLabel {
-        public HyperlinkText(String text, int x, int y, Runnable action) {
-            super(text);
-            setForeground(COLOR_OUTLINE);
-            setFont(FONT_FORGOT_PASSWORD);
-            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-            Dimension prefSize = getPreferredSize();
-            setBounds(x, y, prefSize.width + 20, prefSize.height);
-            addMouseListener(new MouseAdapter() {
-                public void mousePressed(MouseEvent e) { action.run(); }
-                public void mouseEntered(MouseEvent e) { setForeground(COLOR_OUTLINE.darker()); }
-                public void mouseExited(MouseEvent e) { setForeground(COLOR_OUTLINE); }
-            });
-        }
-    }
-
-    // toaster handler
-    static class Toaster {
-        private static final int START_Y = 15;
-        private static final int SPACER = 15;
-        private static final ArrayList<ToasterBody> toasts = new ArrayList<>();
-        private final static AtomicInteger OFFSET_Y = new AtomicInteger();
-        private final JPanel parent;
-
-        public Toaster(JPanel parent) { this.parent = parent; }
-        public void error(String msg) { toast(msg, new Color(181, 59, 86)); }
-        public void success(String msg) { toast(msg, new Color(33, 181, 83)); }
-        public void warn(String msg) { toast(msg, new Color(181, 147, 10)); }
-
-        private void toast(String msg, Color color) {
-            ToasterBody toast = new ToasterBody(parent, msg, color, OFFSET_Y.get() + START_Y);
-            OFFSET_Y.addAndGet(toast.height + SPACER);
-            toasts.add(toast);
-            new Thread(() -> {
-                parent.add(toast);
-                parent.repaint();
-                try { Thread.sleep(4000); } catch (InterruptedException ignored) {}
-                parent.remove(toast);
-                OFFSET_Y.addAndGet(-toast.height - SPACER);
-                parent.repaint();
-            }).start();
-        }
-    }
-
-    // toaster body UI
-    static class ToasterBody extends JPanel {
-        final int height;
-        final String message;
-        final Color color;
-
-        public ToasterBody(JPanel parent, String msg, Color color, int y) {
-            this.message = msg;
-            this.color = color;
-            this.height = 40;
-            setOpaque(false);
-            setBounds((parent.getWidth() - 300) / 2, y, 300, height);
-        }
-
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g;
-            g2.setColor(color);
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), ROUNDNESS, ROUNDNESS);
-            g2.setFont(FONT_GENERAL_UI);
-            g2.setColor(Color.WHITE);
-            g2.drawString(message, 20, 25);
-        }
-    }
-
-    // success frame
-    static class SuccessFrame extends JFrame {
-        public SuccessFrame() {
-            setTitle("Success");
-            JLabel label = new JLabel("Login Successful!", SwingConstants.CENTER);
-            label.setFont(new Font("Segoe UI", Font.BOLD, 22));
-            label.setForeground(Color.GREEN);
-            add(label);
-            setSize(300, 150);
-            setLocationRelativeTo(null);
-            setVisible(true);
-        }
-    }
-
-    // error frame
-    static class ErrorFrame extends JFrame {
-        public ErrorFrame() {
-            setTitle("Error");
-            JLabel label = new JLabel("Incorrect username or password", SwingConstants.CENTER);
-            label.setFont(new Font("Segoe UI", Font.BOLD, 16));
-            label.setForeground(Color.RED);
-            add(label);
-            setSize(350, 150);
-            setLocationRelativeTo(null);
-            setVisible(true);
+    private void saveUser(String username, String password) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(userFile, true))) {
+            writer.write(username + "," + password);
+            writer.newLine();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
